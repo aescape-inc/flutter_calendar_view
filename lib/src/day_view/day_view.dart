@@ -192,6 +192,9 @@ class DayView<T extends Object?> extends StatefulWidget {
   /// are set to 0 by default.
   final EdgeInsets padding;
 
+  /// Flag to display circle on the left side of the live time indicator
+  final bool showLiveTimeIndicatorBullet;
+
   /// Main widget for day view.
   const DayView({
     Key? key,
@@ -233,6 +236,7 @@ class DayView<T extends Object?> extends StatefulWidget {
     this.halfHourIndicatorSettings,
     this.startDuration = const Duration(hours: 0),
     this.padding = const EdgeInsets.all(0),
+    this.showLiveTimeIndicatorBullet = true,
   })  : assert(timeLineOffset >= 0,
             "timeLineOffset must be greater than or equal to 0"),
         assert(width == null || width > 0,
@@ -434,6 +438,8 @@ class DayViewState<T extends Object?> extends State<DayView<T>> {
                             halfHourIndicatorSettings:
                                 _halfHourIndicatorSettings,
                             padding: widget.padding,
+                            showLiveTimeIndicatorBullet:
+                                widget.showLiveTimeIndicatorBullet,
                           ),
                         );
                       },

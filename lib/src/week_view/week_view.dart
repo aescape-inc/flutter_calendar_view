@@ -183,6 +183,9 @@ class WeekView<T extends Object?> extends StatefulWidget {
   /// Display full day event builder.
   final FullDayEventBuilder<T>? fullDayEventBuilder;
 
+  /// Flag to display circle on the left side of the live time indicator
+  final bool showLiveTimeIndicatorBullet;
+
   /// Main widget for week view.
   const WeekView({
     Key? key,
@@ -224,6 +227,7 @@ class WeekView<T extends Object?> extends StatefulWidget {
     this.headerStyle = const HeaderStyle(),
     this.safeAreaOption = const SafeAreaOption(),
     this.fullDayEventBuilder,
+    this.showLiveTimeIndicatorBullet = true,
   })  : assert((timeLineOffset) >= 0,
             "timeLineOffset must be greater than or equal to 0"),
         assert(width == null || width > 0,
@@ -433,6 +437,8 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                             minuteSlotSize: widget.minuteSlotSize,
                             scrollConfiguration: _scrollConfiguration,
                             fullDayEventBuilder: _fullDayEventBuilder,
+                            showLiveTimeIndicatorBullet:
+                                widget.showLiveTimeIndicatorBullet,
                           ),
                         );
                       },
