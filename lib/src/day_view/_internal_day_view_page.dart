@@ -98,6 +98,9 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
   /// Settings for half hour indicator lines.
   final HourIndicatorSettings halfHourIndicatorSettings;
 
+  /// Padding that will be passed to a scroll view.
+  final EdgeInsets padding;
+
   final ScrollController scrollController;
 
   /// Defines a single day page.
@@ -129,11 +132,15 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
     required this.dayDetectorBuilder,
     required this.showHalfHours,
     required this.halfHourIndicatorSettings,
+    required this.padding,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final fullDayEventList = controller.getFullDayEvent(date);
+
+    final width = this.width - padding.horizontal;
+
     return Container(
       height: height,
       width: width,
@@ -144,6 +151,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
               : fullDayEventBuilder(fullDayEventList, date),
           Expanded(
             child: SingleChildScrollView(
+              padding: padding,
               controller: scrollController,
               child: SizedBox(
                 height: height,

@@ -188,6 +188,10 @@ class DayView<T extends Object?> extends StatefulWidget {
   /// By default it will be Duration(hours:0)
   final Duration startDuration;
 
+  /// Padding from scroll view to calendar content. All offsets
+  /// are set to 0 by default.
+  final EdgeInsets padding;
+
   /// Main widget for day view.
   const DayView({
     Key? key,
@@ -228,6 +232,7 @@ class DayView<T extends Object?> extends StatefulWidget {
     this.showHalfHours = false,
     this.halfHourIndicatorSettings,
     this.startDuration = const Duration(hours: 0),
+    this.padding = const EdgeInsets.all(0),
   })  : assert(timeLineOffset >= 0,
             "timeLineOffset must be greater than or equal to 0"),
         assert(width == null || width > 0,
@@ -428,6 +433,7 @@ class DayViewState<T extends Object?> extends State<DayView<T>> {
                             showHalfHours: widget.showHalfHours,
                             halfHourIndicatorSettings:
                                 _halfHourIndicatorSettings,
+                            padding: widget.padding,
                           ),
                         );
                       },
