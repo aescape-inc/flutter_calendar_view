@@ -111,6 +111,9 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
   /// Display full day events.
   final FullDayEventBuilder<T> fullDayEventBuilder;
 
+  /// Flag to display circle on the left side of the live time indicator
+  final bool showLiveTimeIndicatorBullet;
+
   /// A single page for week view.
   const InternalWeekViewPage({
     Key? key,
@@ -143,6 +146,7 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
     required this.scrollConfiguration,
     required this.fullDayEventBuilder,
     required this.weekDetectorBuilder,
+    required this.showLiveTimeIndicatorBullet,
   }) : super(key: key);
 
   @override
@@ -227,6 +231,7 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
                     ),
                     if (showLiveLine && liveTimeIndicatorSettings.height > 0)
                       LiveTimeIndicator(
+                        showBullet: showLiveTimeIndicatorBullet,
                         liveTimeIndicatorSettings: liveTimeIndicatorSettings,
                         width: width,
                         height: height,
