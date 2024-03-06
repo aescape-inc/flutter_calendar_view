@@ -22,6 +22,8 @@ import '../style/header_style.dart';
 import '../typedefs.dart';
 import '_internal_day_view_page.dart';
 
+typedef GetNow = DateTime Function();
+
 class DayView<T extends Object?> extends StatefulWidget {
   /// A function that returns a [Widget] that determines appearance of each
   /// cell in day calendar.
@@ -195,6 +197,8 @@ class DayView<T extends Object?> extends StatefulWidget {
   /// Flag to display circle on the left side of the live time indicator
   final bool showLiveTimeIndicatorBullet;
 
+  final GetNow? getNow;
+
   /// Main widget for day view.
   const DayView({
     Key? key,
@@ -237,6 +241,7 @@ class DayView<T extends Object?> extends StatefulWidget {
     this.startDuration = const Duration(hours: 0),
     this.padding = const EdgeInsets.all(0),
     this.showLiveTimeIndicatorBullet = true,
+    this.getNow,
   })  : assert(timeLineOffset >= 0,
             "timeLineOffset must be greater than or equal to 0"),
         assert(width == null || width > 0,
@@ -295,6 +300,8 @@ class DayViewState<T extends Object?> extends State<DayView<T>> {
 
   final _scrollConfiguration = EventScrollConfiguration<T>();
 
+  DateTime getNow() => widget.getNow?.call() ?? DateTime.now();
+
   @override
   void initState() {
     super.initState();
@@ -302,7 +309,7 @@ class DayViewState<T extends Object?> extends State<DayView<T>> {
     _reloadCallback = _reload;
     _setDateRange();
 
-    _currentDate = (widget.initialDay ?? DateTime.now()).withoutTime;
+    _currentDate = (widget.initialDay ?? getNow()).withoutTime;
 
     _regulateCurrentDate();
 
@@ -421,7 +428,7 @@ class DayViewState<T extends Object?> extends State<DayView<T>> {
                             onDateLongPress: widget.onDateLongPress,
                             onDateTap: widget.onDateTap,
                             showLiveLine: widget.showLiveTimeLineInAllDays ||
-                                date.compareWithoutTime(DateTime.now()),
+                                date.compareWithoutTime(getNow()),
                             timeLineOffset: widget.timeLineOffset,
                             timeLineWidth: _timeLineWidth,
                             verticalLineOffset: widget.verticalLineOffset,
@@ -440,6 +447,7 @@ class DayViewState<T extends Object?> extends State<DayView<T>> {
                             padding: widget.padding,
                             showLiveTimeIndicatorBullet:
                                 widget.showLiveTimeIndicatorBullet,
+                            getNow: getNow,
                           ),
                         );
                       },

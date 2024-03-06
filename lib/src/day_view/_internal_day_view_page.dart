@@ -106,6 +106,8 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
   /// Flag to display circle on the left side of the live time indicator
   final bool showLiveTimeIndicatorBullet;
 
+  final DateTime Function() getNow;
+
   /// Defines a single day page.
   const InternalDayViewPage({
     Key? key,
@@ -137,6 +139,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
     required this.halfHourIndicatorSettings,
     required this.padding,
     required this.showLiveTimeIndicatorBullet,
+    required this.getNow,
   }) : super(key: key);
 
   @override
@@ -222,6 +225,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
                       timeLineOffset: timeLineOffset,
                       timeLineWidth: timeLineWidth,
                       showHalfHours: showHalfHours,
+                      getNow: getNow,
                       key: ValueKey(heightPerMinute),
                     ),
                     if (showLiveLine && liveTimeIndicatorSettings.height > 0)
@@ -233,6 +237,7 @@ class InternalDayViewPage<T extends Object?> extends StatelessWidget {
                           heightPerMinute: heightPerMinute,
                           timeLineWidth: timeLineWidth,
                           showBullet: showLiveTimeIndicatorBullet,
+                          getNow: getNow,
                         ),
                       ),
                   ],

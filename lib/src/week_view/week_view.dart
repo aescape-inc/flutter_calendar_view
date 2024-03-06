@@ -439,6 +439,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                             fullDayEventBuilder: _fullDayEventBuilder,
                             showLiveTimeIndicatorBullet:
                                 widget.showLiveTimeIndicatorBullet,
+                            getNow: () => DateTime.now(),
                           ),
                         );
                       },

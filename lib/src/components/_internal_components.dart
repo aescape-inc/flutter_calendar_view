@@ -39,6 +39,8 @@ class LiveTimeIndicator extends StatefulWidget {
   /// live time indicator
   final bool showBullet;
 
+  final DateTime Function() getNow;
+
   /// Widget to display tile line according to current time.
   const LiveTimeIndicator({
     Key? key,
@@ -48,6 +50,7 @@ class LiveTimeIndicator extends StatefulWidget {
     required this.liveTimeIndicatorSettings,
     required this.heightPerMinute,
     required this.showBullet,
+    required this.getNow,
   }) : super(key: key);
 
   @override
@@ -62,7 +65,7 @@ class _LiveTimeIndicatorState extends State<LiveTimeIndicator> {
   void initState() {
     super.initState();
 
-    _currentDate = DateTime.now();
+    _currentDate = widget.getNow();
     _timer = Timer(Duration(seconds: 1), setTimer);
   }
 
@@ -78,7 +81,7 @@ class _LiveTimeIndicatorState extends State<LiveTimeIndicator> {
   void setTimer() {
     if (mounted) {
       setState(() {
-        _currentDate = DateTime.now();
+        _currentDate = widget.getNow();
         _timer = Timer(Duration(seconds: 1), setTimer);
       });
     }
@@ -121,7 +124,7 @@ class TimeLine extends StatelessWidget {
   /// Flag to display half hours.
   final bool showHalfHours;
 
-  static DateTime get _date => DateTime.now();
+  final DateTime Function() getNow;
 
   double get _halfHourHeight => hourHeight / 2;
 
@@ -133,6 +136,7 @@ class TimeLine extends StatelessWidget {
     required this.height,
     required this.timeLineOffset,
     required this.timeLineBuilder,
+    required this.getNow,
     this.showHalfHours = false,
   }) : super(key: key);
 
@@ -174,6 +178,8 @@ class TimeLine extends StatelessWidget {
     required int hour,
     int minutes = 0,
   }) {
+    final _date = getNow();
+
     return Positioned(
       top: topPosition,
       left: 0,
