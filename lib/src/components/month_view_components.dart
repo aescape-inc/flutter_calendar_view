@@ -2,15 +2,12 @@
 // Use of this source code is governed by a MIT-style license
 // that can be found in the LICENSE file.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../calendar_event_data.dart';
 import '../constants.dart';
 import '../extensions.dart';
-import '../style/header_style.dart';
 import '../typedefs.dart';
-import 'common_components.dart';
 
 class CircularCell extends StatelessWidget {
   /// Date of cell.
@@ -86,6 +83,12 @@ class FilledCell<T extends Object?> extends StatelessWidget {
   /// Called when user taps on any event tile.
   final TileTapCallback<T>? onTileTap;
 
+  /// Called when user long press on any event tile.
+  final TileTapCallback<T>? onTileLongTap;
+
+  /// Called when user double tap on any event tile.
+  final TileTapCallback<T>? onTileDoubleTap;
+
   /// defines that [date] is in current month or not.
   final bool isInMonth;
 
@@ -98,6 +101,9 @@ class FilledCell<T extends Object?> extends StatelessWidget {
   /// color of highlighted cell title
   final Color highlightedTitleColor;
 
+  /// defines that show and hide cell not is in current month
+  final bool hideDaysNotInMonth;
+
   /// This class will defines how cell will be displayed.
   /// This widget will display all the events as tile below date title.
   const FilledCell({
@@ -105,15 +111,18 @@ class FilledCell<T extends Object?> extends StatelessWidget {
     required this.date,
     required this.events,
     this.isInMonth = false,
+    this.hideDaysNotInMonth = true,
     this.shouldHighlight = false,
     this.backgroundColor = Colors.blue,
     this.highlightColor = Colors.blue,
     this.onTileTap,
+    this.onTileLongTap,
     this.tileColor = Colors.blue,
     this.highlightRadius = 11,
     this.titleColor = Constants.black,
     this.highlightedTitleColor = Constants.white,
     this.dateStringBuilder,
+    this.onTileDoubleTap,
   }) : super(key: key);
 
   @override
@@ -125,22 +134,19 @@ class FilledCell<T extends Object?> extends StatelessWidget {
           SizedBox(
             height: 5.0,
           ),
-          CircleAvatar(
-            radius: highlightRadius,
-            backgroundColor:
-                shouldHighlight ? highlightColor : Colors.transparent,
-            child: Text(
-              dateStringBuilder?.call(date) ?? "${date.day}",
-              style: TextStyle(
-                color: shouldHighlight
-                    ? highlightedTitleColor
-                    : isInMonth
-                        ? titleColor
-                        : titleColor.withOpacity(0.4),
-                fontSize: 12,
+          if (!(!isInMonth && hideDaysNotInMonth))
+            CircleAvatar(
+              radius: highlightRadius,
+              backgroundColor:
+                  shouldHighlight ? highlightColor : Colors.transparent,
+              child: Text(
+                dateStringBuilder?.call(date) ?? "${date.day}",
+                style: TextStyle(
+                  color: shouldHighlight ? highlightedTitleColor : titleColor,
+                  fontSize: 12,
+                ),
               ),
             ),
-          ),
           if (events.isNotEmpty)
             Expanded(
               child: Container(
@@ -154,8 +160,11 @@ class FilledCell<T extends Object?> extends StatelessWidget {
                     children: List.generate(
                       events.length,
                       (index) => GestureDetector(
-                        onTap: () =>
-                            onTileTap?.call(events[index], events[index].date),
+                        onTap: () => onTileTap?.call(events[index], date),
+                        onLongPress: () =>
+                            onTileLongTap?.call(events[index], date),
+                        onDoubleTap: () =>
+                            onTileDoubleTap?.call(events[index], date),
                         child: Container(
                           decoration: BoxDecoration(
                             color: events[index].color,
@@ -172,7 +181,7 @@ class FilledCell<T extends Object?> extends StatelessWidget {
                                   events[index].title,
                                   overflow: TextOverflow.clip,
                                   maxLines: 1,
-                                  style: events[0].titleStyle ??
+                                  style: events[index].titleStyle ??
                                       TextStyle(
                                         color: events[index].color.accent,
                                         fontSize: 12,
@@ -192,35 +201,6 @@ class FilledCell<T extends Object?> extends StatelessWidget {
       ),
     );
   }
-}
-
-class MonthPageHeader extends CalendarPageHeader {
-  /// A header widget to display on month view.
-  const MonthPageHeader({
-    Key? key,
-    VoidCallback? onNextMonth,
-    AsyncCallback? onTitleTapped,
-    VoidCallback? onPreviousMonth,
-    Color iconColor = Constants.black,
-    Color backgroundColor = Constants.headerBackground,
-    StringProvider? dateStringBuilder,
-    required DateTime date,
-    HeaderStyle headerStyle = const HeaderStyle(),
-  }) : super(
-          key: key,
-          date: date,
-          onNextDay: onNextMonth,
-          onPreviousDay: onPreviousMonth,
-          onTitleTapped: onTitleTapped,
-          // ignore_for_file: deprecated_member_use_from_same_package
-          backgroundColor: backgroundColor,
-          iconColor: iconColor,
-          dateStringBuilder:
-              dateStringBuilder ?? MonthPageHeader._monthStringBuilder,
-          headerStyle: headerStyle,
-        );
-  static String _monthStringBuilder(DateTime date, {DateTime? secondaryDate}) =>
-      "${date.month} - ${date.year}";
 }
 
 class WeekDayTile extends StatelessWidget {

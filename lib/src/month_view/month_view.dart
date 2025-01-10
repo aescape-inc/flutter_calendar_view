@@ -4,17 +4,8 @@
 
 import 'package:flutter/material.dart';
 
-import '../calendar_constants.dart';
-import '../calendar_controller_provider.dart';
-import '../calendar_event_data.dart';
-import '../components/components.dart';
-import '../components/safe_area_wrapper.dart';
+import '../../calendar_view.dart';
 import '../constants.dart';
-import '../enumerations.dart';
-import '../event_controller.dart';
-import '../extensions.dart';
-import '../style/header_style.dart';
-import '../typedefs.dart';
 
 class MonthView<T extends Object?> extends StatefulWidget {
   /// A function that returns a [Widget] that determines appearance of
@@ -23,7 +14,12 @@ class MonthView<T extends Object?> extends StatefulWidget {
 
   /// Builds month page title.
   ///
-  /// Used default title builder if null.
+  /// If there are some configurations that is not directly available
+  /// in [MonthView], override this to create your custom header or reuse,
+  /// [CalendarPageHeader] | [DayPageHeader] | [MonthPageHeader] |
+  /// [WeekPageHeader] widgets provided by this package with your custom
+  /// configurations.
+  ///
   final DateWidgetBuilder? headerBuilder;
 
   /// This function will generate DateString in the calendar header.
@@ -50,6 +46,19 @@ class MonthView<T extends Object?> extends StatefulWidget {
   ///
   /// This function will only work if [cellBuilder] is null.
   final TileTapCallback<T>? onEventTap;
+
+  /// This function will be called when user will long press on a single event
+  /// tile inside a cell.
+  ///
+  /// This function will only work if [cellBuilder] is null.
+  final TileTapCallback<T>? onEventLongTap;
+
+  /// This method will be called when user double taps on event tile.
+  final TileTapCallback<T>? onEventDoubleTap;
+
+  /// Show weekends or not.
+  /// Default value is true.
+  final bool showWeekends;
 
   /// Builds the name of the weeks.
   ///
@@ -80,6 +89,12 @@ class MonthView<T extends Object?> extends StatefulWidget {
   /// Use [borderSize] to define width of the border and
   /// [borderColor] to define color of the border.
   final bool showBorder;
+
+  /// Defines whether to show default borders or not for weekTile.
+  ///
+  /// Default value is true
+  ///
+  final bool showWeekTileBorder;
 
   /// Defines width of default border
   ///
@@ -138,6 +153,23 @@ class MonthView<T extends Object?> extends StatefulWidget {
   /// Option for SafeArea.
   final SafeAreaOption safeAreaOption;
 
+  /// Callback for the Header title
+  final HeaderTitleCallback? onHeaderTitleTap;
+
+  /// Defines scroll physics for a page of a month view.
+  ///
+  /// This can be used to disable the vertical scroll of a page.
+  /// Default value is [ClampingScrollPhysics].
+  final ScrollPhysics pagePhysics;
+
+  /// Defines scroll physics for a page of a month view.
+  ///
+  /// This can be used to disable the horizontal scroll of a page.
+  final ScrollPhysics? pageViewPhysics;
+
+  /// defines that show and hide cell not is in current month
+  final bool hideDaysNotInMonth;
+
   /// Main [Widget] to display month view.
   const MonthView({
     Key? key,
@@ -148,6 +180,7 @@ class MonthView<T extends Object?> extends StatefulWidget {
     this.maxMonth,
     this.controller,
     this.initialMonth,
+    this.showWeekends = true,
     this.borderSize = 1,
     this.useAvailableVerticalSpace = false,
     this.cellAspectRatio = 0.55,
@@ -159,6 +192,7 @@ class MonthView<T extends Object?> extends StatefulWidget {
     this.onPageChange,
     this.onCellTap,
     this.onEventTap,
+    this.onEventLongTap,
     this.onDateLongPress,
     this.startDay = WeekDays.monday,
     this.headerStringBuilder,
@@ -166,7 +200,15 @@ class MonthView<T extends Object?> extends StatefulWidget {
     this.weekDayStringBuilder,
     this.headerStyle = const HeaderStyle(),
     this.safeAreaOption = const SafeAreaOption(),
-  }) : super(key: key);
+    this.onHeaderTitleTap,
+    this.pagePhysics = const ClampingScrollPhysics(),
+    this.pageViewPhysics,
+    this.onEventDoubleTap,
+    this.showWeekTileBorder = true,
+    this.hideDaysNotInMonth = false,
+  })  : assert(!(onHeaderTitleTap != null && headerBuilder != null),
+            "can't use [onHeaderTitleTap] & [headerBuilder] simultaneously"),
+        super(key: key);
 
   @override
   MonthViewState<T> createState() => MonthViewState<T>();
@@ -293,10 +335,14 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
+                physics: widget.pageViewPhysics,
                 onPageChanged: _onPageChange,
                 itemBuilder: (_, index) {
                   final date = DateTime(_minDate.year, _minDate.month + index);
-                  final weekDays = date.datesOfWeek(start: widget.startDay);
+                  final weekDays = date.datesOfWeek(
+                    start: widget.startDay,
+                    showWeekEnds: widget.showWeekends,
+                  );
 
                   return Column(
                     mainAxisSize: MainAxisSize.min,
@@ -306,7 +352,7 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
                         width: _width,
                         child: Row(
                           children: List.generate(
-                            7,
+                            widget.showWeekends ? 7 : 5,
                             (index) => Expanded(
                               child: SizedBox(
                                 width: _cellWidth,
@@ -318,34 +364,45 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
                         ),
                       ),
                       Expanded(
-                        child: LayoutBuilder(builder: (context, constraints) {
-                          final _cellAspectRatio =
-                              widget.useAvailableVerticalSpace
-                                  ? calculateCellAspectRatio(
-                                      constraints.maxHeight,
-                                    )
-                                  : widget.cellAspectRatio;
-
-                          return SizedBox(
-                            height: _height,
-                            width: _width,
-                            child: _MonthPageBuilder<T>(
-                              key: ValueKey(date.toIso8601String()),
-                              onCellTap: widget.onCellTap,
-                              onDateLongPress: widget.onDateLongPress,
-                              width: _width,
-                              height: _height,
-                              controller: controller,
-                              borderColor: widget.borderColor,
-                              borderSize: widget.borderSize,
-                              cellBuilder: _cellBuilder,
-                              cellRatio: _cellAspectRatio,
-                              date: date,
-                              showBorder: widget.showBorder,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final dates = date.datesOfMonths(
                               startDay: widget.startDay,
-                            ),
-                          );
-                        }),
+                              hideDaysNotInMonth: widget.hideDaysNotInMonth,
+                              showWeekends: widget.showWeekends,
+                            );
+                            final _cellAspectRatio =
+                                widget.useAvailableVerticalSpace
+                                    ? calculateCellAspectRatio(
+                                        height: constraints.maxHeight,
+                                        daysInMonth: dates.length,
+                                      )
+                                    : widget.cellAspectRatio;
+
+                            return SizedBox(
+                              height: _height,
+                              width: _width,
+                              child: _MonthPageBuilder<T>(
+                                key: ValueKey(date.toIso8601String()),
+                                onCellTap: widget.onCellTap,
+                                onDateLongPress: widget.onDateLongPress,
+                                width: _width,
+                                height: _height,
+                                controller: controller,
+                                borderColor: widget.borderColor,
+                                borderSize: widget.borderSize,
+                                cellBuilder: _cellBuilder,
+                                cellRatio: _cellAspectRatio,
+                                date: date,
+                                showBorder: widget.showBorder,
+                                startDay: widget.startDay,
+                                physics: widget.pagePhysics,
+                                hideDaysNotInMonth: widget.hideDaysNotInMonth,
+                                weekDays: widget.showWeekends ? 7 : 5,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ],
                   );
@@ -384,8 +441,12 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
     _height = _cellHeight * 6;
   }
 
-  double calculateCellAspectRatio(double height) {
-    final _cellHeight = height / 6;
+  double calculateCellAspectRatio({
+    required double height,
+    required int daysInMonth,
+  }) {
+    final rows = daysInMonth / 7;
+    final _cellHeight = height / rows;
     return _cellWidth / _cellHeight;
   }
 
@@ -461,16 +522,22 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
   /// Default month view header builder
   Widget _defaultHeaderBuilder(DateTime date) {
     return MonthPageHeader(
+      showPreviousIcon: date != _minDate,
+      showNextIcon: date != _maxDate,
       onTitleTapped: () async {
-        final selectedDate = await showDatePicker(
-          context: context,
-          initialDate: date,
-          firstDate: _minDate,
-          lastDate: _maxDate,
-        );
+        if (widget.onHeaderTitleTap != null) {
+          widget.onHeaderTitleTap!(date);
+        } else {
+          final selectedDate = await showDatePicker(
+            context: context,
+            initialDate: date,
+            firstDate: _minDate,
+            lastDate: _maxDate,
+          );
 
-        if (selectedDate == null) return;
-        jumpToMonth(selectedDate);
+          if (selectedDate == null) return;
+          jumpToMonth(selectedDate);
+        }
       },
       onPreviousMonth: previousPage,
       date: date,
@@ -485,19 +552,45 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
     return WeekDayTile(
       dayIndex: index,
       weekDayStringBuilder: widget.weekDayStringBuilder,
+      displayBorder: widget.showWeekTileBorder,
     );
   }
 
   /// Default cell builder. Used when [widget.cellBuilder] is null
   Widget _defaultCellBuilder(
-      date, List<CalendarEventData<T>> events, isToday, isInMonth) {
+    date,
+    List<CalendarEventData<T>> events,
+    isToday,
+    isInMonth,
+    hideDaysNotInMonth,
+  ) {
+    if (hideDaysNotInMonth) {
+      return FilledCell<T>(
+        date: date,
+        shouldHighlight: isToday,
+        backgroundColor: isInMonth ? Constants.white : Constants.offWhite,
+        events: events,
+        isInMonth: isInMonth,
+        onTileTap: widget.onEventTap,
+        onTileDoubleTap: widget.onEventDoubleTap,
+        onTileLongTap: widget.onEventLongTap,
+        dateStringBuilder: widget.dateStringBuilder,
+        hideDaysNotInMonth: hideDaysNotInMonth,
+      );
+    }
     return FilledCell<T>(
       date: date,
       shouldHighlight: isToday,
       backgroundColor: isInMonth ? Constants.white : Constants.offWhite,
       events: events,
       onTileTap: widget.onEventTap,
+      onTileLongTap: widget.onEventLongTap,
       dateStringBuilder: widget.dateStringBuilder,
+      onTileDoubleTap: widget.onEventDoubleTap,
+      hideDaysNotInMonth: hideDaysNotInMonth,
+      titleColor: isInMonth
+          ? Theme.of(context).colorScheme.onPrimaryContainer
+          : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(150),
     );
   }
 
@@ -588,6 +681,9 @@ class _MonthPageBuilder<T> extends StatelessWidget {
   final CellTapCallback<T>? onCellTap;
   final DatePressCallback? onDateLongPress;
   final WeekDays startDay;
+  final ScrollPhysics physics;
+  final bool hideDaysNotInMonth;
+  final int weekDays;
 
   const _MonthPageBuilder({
     Key? key,
@@ -603,25 +699,38 @@ class _MonthPageBuilder<T> extends StatelessWidget {
     required this.onCellTap,
     required this.onDateLongPress,
     required this.startDay,
+    required this.physics,
+    required this.hideDaysNotInMonth,
+    required this.weekDays,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final monthDays = date.datesOfMonths(startDay: startDay);
-    return Container(
+    final monthDays = date.datesOfMonths(
+      startDay: startDay,
+      hideDaysNotInMonth: hideDaysNotInMonth,
+      showWeekends: weekDays == 7,
+    );
+
+    // Highlight tiles which is not in current month
+    return SizedBox(
       width: width,
       height: height,
       child: GridView.builder(
         padding: EdgeInsets.zero,
-        physics: ClampingScrollPhysics(),
+        physics: physics,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 7,
+          crossAxisCount: weekDays,
           childAspectRatio: cellRatio,
         ),
-        itemCount: 42,
+        itemCount: monthDays.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          final events = controller.getEventsOnDay(monthDays[index]);
+          // Hide events if `hideDaysNotInMonth` true
+          final events =
+              hideDaysNotInMonth && (monthDays[index].month != date.month)
+                  ? <CalendarEventData<T>>[]
+                  : controller.getEventsOnDay(monthDays[index]);
           return GestureDetector(
             onTap: () => onCellTap?.call(events, monthDays[index]),
             onLongPress: () => onDateLongPress?.call(monthDays[index]),
@@ -639,6 +748,7 @@ class _MonthPageBuilder<T> extends StatelessWidget {
                 events,
                 monthDays[index].compareWithoutTime(DateTime.now()),
                 monthDays[index].month == date.month,
+                hideDaysNotInMonth,
               ),
             ),
           );
@@ -646,4 +756,9 @@ class _MonthPageBuilder<T> extends StatelessWidget {
       ),
     );
   }
+}
+
+class MonthHeader {
+  /// Hide Header Widget
+  static Widget hidden(DateTime date) => SizedBox.shrink();
 }

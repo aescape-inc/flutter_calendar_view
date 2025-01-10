@@ -2,15 +2,11 @@
 // Use of this source code is governed by a MIT-style license
 // that can be found in the LICENSE file.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../calendar_event_data.dart';
-import '../constants.dart';
 import '../extensions.dart';
-import '../style/header_style.dart';
 import '../typedefs.dart';
-import 'common_components.dart';
 
 /// This class defines default tile to display in day view.
 class RoundedEventTile extends StatelessWidget {
@@ -18,7 +14,7 @@ class RoundedEventTile extends StatelessWidget {
   final String title;
 
   /// Description of the tile.
-  final String description;
+  final String? description;
 
   /// Background color of tile.
   /// Default color is [Colors.blue]
@@ -49,7 +45,7 @@ class RoundedEventTile extends StatelessWidget {
     required this.title,
     this.padding = EdgeInsets.zero,
     this.margin = EdgeInsets.zero,
-    this.description = "",
+    this.description,
     this.borderRadius = BorderRadius.zero,
     this.totalEvents = 1,
     this.backgroundColor = Colors.blue,
@@ -83,12 +79,12 @@ class RoundedEventTile extends StatelessWidget {
                 overflow: TextOverflow.fade,
               ),
             ),
-          if (description.isNotEmpty)
+          if (description?.isNotEmpty ?? false)
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 15.0),
                 child: Text(
-                  description,
+                  description!,
                   style: descriptionStyle ??
                       TextStyle(
                         fontSize: 17,
@@ -112,37 +108,6 @@ class RoundedEventTile extends StatelessWidget {
       ),
     );
   }
-}
-
-/// A header widget to display on day view.
-class DayPageHeader extends CalendarPageHeader {
-  /// A header widget to display on day view.
-  const DayPageHeader({
-    Key? key,
-    VoidCallback? onNextDay,
-    AsyncCallback? onTitleTapped,
-    VoidCallback? onPreviousDay,
-    Color iconColor = Constants.black,
-    Color backgroundColor = Constants.headerBackground,
-    StringProvider? dateStringBuilder,
-    required DateTime date,
-    HeaderStyle headerStyle = const HeaderStyle(),
-  }) : super(
-          key: key,
-          date: date,
-          // ignore_for_file: deprecated_member_use_from_same_package
-          backgroundColor: backgroundColor,
-          iconColor: iconColor,
-          onNextDay: onNextDay,
-          onPreviousDay: onPreviousDay,
-          onTitleTapped: onTitleTapped,
-          dateStringBuilder:
-              dateStringBuilder ?? DayPageHeader._dayStringBuilder,
-          headerStyle: headerStyle,
-        );
-
-  static String _dayStringBuilder(DateTime date, {DateTime? secondaryDate}) =>
-      "${date.day} - ${date.month} - ${date.year}";
 }
 
 class DefaultTimeLineMark extends StatelessWidget {
@@ -199,6 +164,8 @@ class FullDayEventView<T> extends StatelessWidget {
     this.titleStyle,
     this.onEventTap,
     required this.date,
+    this.onEventDoubleTap,
+    this.onEventLongPress,
   }) : super(key: key);
 
   /// Constraints for view
@@ -217,7 +184,13 @@ class FullDayEventView<T> extends StatelessWidget {
   final TextStyle? titleStyle;
 
   /// Called when user taps on event tile.
-  final TileTapCallback<T>? onEventTap;
+  final CellTapCallback<T>? onEventTap;
+
+  /// Called when user long press on event tile.
+  final CellTapCallback<T>? onEventLongPress;
+
+  /// Called when user double taps on any event tile.
+  final CellTapCallback<T>? onEventDoubleTap;
 
   /// Defines date for which events will be displayed.
   final DateTime date;
@@ -231,7 +204,9 @@ class FullDayEventView<T> extends StatelessWidget {
         padding: padding ?? EdgeInsets.zero,
         shrinkWrap: true,
         itemBuilder: (context, index) => InkWell(
-          onTap: () => onEventTap?.call(events[index], date),
+          onLongPress: () => onEventLongPress?.call(events, date),
+          onTap: () => onEventTap?.call(events, date),
+          onDoubleTap: () => onEventDoubleTap?.call(events, date),
           child: itemView?.call(events[index]) ??
               Container(
                 margin: const EdgeInsets.all(5.0),
