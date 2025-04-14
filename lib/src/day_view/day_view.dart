@@ -212,6 +212,13 @@ class DayView<T extends Object?> extends StatefulWidget {
   /// Show quarter hour indicator(15min & 45min).
   final bool showQuarterHours;
 
+  /// Count of vertical lanes in day view. If > 1, it will show
+  /// verticalLanesCount - 1 vertical lines between lanes.
+  final int verticalLanesCount;
+
+  /// Display settings for the lane lines.
+  final VerticalLaneLineSettings verticalLaneLineSettings;
+
   /// It define the starting duration from where day view page will be visible
   /// By default it will be Duration(hours:0)
   final Duration startDuration;
@@ -278,6 +285,8 @@ class DayView<T extends Object?> extends StatefulWidget {
     this.dayDetectorBuilder,
     this.showHalfHours = false,
     this.showQuarterHours = false,
+    this.verticalLanesCount = 1,
+    this.verticalLaneLineSettings = const VerticalLaneLineSettings.none(),
     this.halfHourIndicatorSettings,
     this.startHour = 0,
     this.quarterHourIndicatorSettings,
@@ -508,6 +517,9 @@ class DayViewState<T extends Object?> extends State<DayView<T>> {
                             fullDayEventBuilder: _fullDayEventBuilder,
                             showHalfHours: widget.showHalfHours,
                             showQuarterHours: widget.showQuarterHours,
+                            verticalLanesCount: widget.verticalLanesCount,
+                            verticalLaneLineSettings:
+                                widget.verticalLaneLineSettings,
                             halfHourIndicatorSettings:
                                 _halfHourIndicatorSettings,
                             padding: widget.padding,

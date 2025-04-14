@@ -109,6 +109,9 @@ class InternalDayViewPage<T extends Object?> extends StatefulWidget {
   /// Flag to display quarter hours.
   final bool showQuarterHours;
 
+  /// Flag to display quarter hours.
+  final int verticalLanesCount;
+
   /// Settings for half hour indicator lines.
   final HourIndicatorSettings halfHourIndicatorSettings;
 
@@ -120,6 +123,9 @@ class InternalDayViewPage<T extends Object?> extends StatefulWidget {
 
   /// Settings for half hour indicator lines.
   final HourIndicatorSettings quarterHourIndicatorSettings;
+
+  /// Settings for half hour indicator lines.
+  final VerticalLaneLineSettings verticalLaneLineSettings;
 
   /// Scroll listener to set every page's last offset
   final void Function(ScrollController) scrollListener;
@@ -180,6 +186,8 @@ class InternalDayViewPage<T extends Object?> extends StatefulWidget {
     required this.dayDetectorBuilder,
     required this.showHalfHours,
     required this.showQuarterHours,
+    required this.verticalLanesCount,
+    required this.verticalLaneLineSettings,
     required this.halfHourIndicatorSettings,
     required this.padding,
     required this.showLiveTimeIndicatorBullet,
@@ -301,6 +309,17 @@ class _InternalDayViewPageState<T extends Object?>
                               widget.quarterHourIndicatorSettings.dashWidth,
                           dashSpaceWidth: widget
                               .quarterHourIndicatorSettings.dashSpaceWidth,
+                        ),
+                      ),
+                    if (widget.verticalLanesCount > 1)
+                      CustomPaint(
+                        size: Size(width, widget.height),
+                        painter: VerticalLanesLinePainter(
+                          lineColor: widget.verticalLaneLineSettings.color,
+                          lineWidth: widget.verticalLaneLineSettings.width,
+                          offset: widget.timeLineWidth +
+                              widget.verticalLaneLineSettings.offset,
+                          lanesCount: widget.verticalLanesCount,
                         ),
                       ),
                     widget.dayDetectorBuilder(

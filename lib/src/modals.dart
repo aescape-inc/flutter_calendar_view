@@ -33,6 +33,27 @@ class HourIndicatorSettings {
       );
 }
 
+class VerticalLaneLineSettings {
+  final double width;
+  final Color color;
+  final double offset;
+  final int startHour;
+
+  /// Settings for hour lines
+  const VerticalLaneLineSettings(
+      {this.width = 1.0,
+      this.offset = 0.0,
+      this.color = Colors.grey,
+      this.startHour = 0})
+      : assert(width >= 0, "Width must be greater than or equal to 0.");
+
+  const VerticalLaneLineSettings.none()
+      : color = Colors.transparent,
+        width = 0.0,
+        startHour = 0,
+        offset = 0.0;
+}
+
 /// Settings for live time line
 class LiveTimeIndicatorSettings {
   /// Color of time indicator.

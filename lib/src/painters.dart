@@ -254,6 +254,51 @@ class QuarterHourLinePainter extends CustomPainter {
   }
 }
 
+class VerticalLanesLinePainter extends CustomPainter {
+  /// Color of quarter hour line
+  final Color lineColor;
+
+  /// Height of quarter hour line
+  final double lineWidth;
+
+  /// Offset of quarter hour line from left.
+  final double offset;
+
+  /// Height occupied by one minute of time stamp.
+  final int lanesCount;
+
+  /// Paint quarter hour lines
+  VerticalLanesLinePainter({
+    required this.lineColor,
+    required this.lineWidth,
+    required this.offset,
+    required this.lanesCount,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = lineWidth;
+
+    for (var i = 1; i < lanesCount; i++) {
+      final laneWidth = (size.width - offset) / lanesCount;
+      final dx = offset + i * laneWidth;
+
+      canvas.drawLine(Offset(dx, 0), Offset(dx, size.height), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return oldDelegate is VerticalLanesLinePainter &&
+        (oldDelegate.lineColor != lineColor ||
+            oldDelegate.offset != offset ||
+            lineWidth != oldDelegate.lineWidth ||
+            lanesCount != oldDelegate.lanesCount);
+  }
+}
+
 /// Paints a single horizontal line at [offset].
 class CurrentTimeLinePainter extends CustomPainter {
   /// Color of time indicator.
