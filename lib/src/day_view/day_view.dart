@@ -244,6 +244,8 @@ class DayView<T extends Object?> extends StatefulWidget {
   /// Flag to keep scrollOffset of pages on page change
   final bool keepScrollOffset;
 
+  final void Function(ScrollController)? onScroll;
+
   /// Main widget for day view.
   const DayView({
     Key? key,
@@ -300,6 +302,7 @@ class DayView<T extends Object?> extends StatefulWidget {
     this.endHour = Constants.hoursADay,
     this.keepScrollOffset = false,
     this.onTimestampTap,
+    this.onScroll,
   })  : assert(!(onHeaderTitleTap != null && dayTitleBuilder != null),
             "can't use [onHeaderTitleTap] & [dayTitleBuilder] simultaneously"),
         assert(timeLineOffset >= 0,
@@ -950,6 +953,7 @@ class DayViewState<T extends Object?> extends State<DayView<T>> {
 
   /// Listener for every day page ScrollController
   void _scrollPageListener(ScrollController controller) {
+    widget.onScroll?.call(controller);
     _lastScrollOffset = controller.offset;
   }
 }
